@@ -31,16 +31,14 @@ MANIFEST_FILE="${ROOT_DIR}/manifest.xml"
 WORKSPACE_DIR="${ROOT_DIR}/vts_hal_test_components"
 UT_CORE_DIR="${ROOT_DIR}/ut-core"
 
-GEN_DIR="${ROOT_DIR}/generated"
-UNIFIED_SRC_DIR="${GEN_DIR}/unified_sources"
-
+UNIFIED_SRC_DIR="${ROOT_DIR}/src"
 BUILD_DIR="${ROOT_DIR}/build"
 
 ##############################################################################
 # UT-Core Version
 ##############################################################################
 
-UT_CORE_DEFAULT_VERSION="4.0.0"
+UT_CORE_DEFAULT_VERSION="5.0.0"
 
 ##############################################################################
 # Validation
@@ -52,8 +50,8 @@ if [ ! -f "${MANIFEST_FILE}" ]; then
 fi
 
 mkdir -p "${WORKSPACE_DIR}"
-mkdir -p "${GEN_DIR}"
 mkdir -p "${BUILD_DIR}"
+mkdir -p "${UNIFIED_SRC_DIR}"
 
 ##############################################################################
 # Banner
@@ -70,64 +68,82 @@ echo "========================================="
 # Parse Manifest
 ##############################################################################
 
-PROJECTS=$(
-grep "<project" "${MANIFEST_FILE}" \
-| sed -n 's/.*name="\([^"]*\)".*/\1/p'
-)
+declare -A PROJECT_PATHS
+declare -A PROJECT_REVISIONS
 
 HAL_REPOS=$(
-grep 'groups="hal"' "${MANIFEST_FILE}" \
-| sed -n 's/.*path="\([^"]*\)".*/\1/p'
+grep 'groups="hal"' "${MANIFEST_FILE}" |
+sed -n 's/.*path="\([^"]*\)".*/\1/p'
 )
 
 TEST_REPOS=$(
-grep 'groups="test"' "${MANIFEST_FILE}" \
-| sed -n 's/.*path="\([^"]*\)".*/\1/p'
+grep 'groups="test"' "${MANIFEST_FILE}" |
+sed -n 's/.*path="\([^"]*\)".*/\1/p'
 )
 
+while read -r line
+do
+    PROJECT_NAME=$(echo "$line" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
+    PROJECT_PATH=$(echo "$line" | sed -n 's/.*path="\([^"]*\)".*/\1/p')
+    PROJECT_REVISION=$(echo "$line" | sed -n 's/.*revision="\([^"]*\)".*/\1/p')
+
+    PROJECT_PATHS["${PROJECT_NAME}"]="${PROJECT_PATH}"
+    PROJECT_REVISIONS["${PROJECT_NAME}"]="${PROJECT_REVISION}"
+
+done < <(grep "<project" "${MANIFEST_FILE}")
+
 ##############################################################################
-# Repository Sync
+# Repository Synchronization
 ##############################################################################
 
-echo ""
+echo
 echo "========================================="
 echo "Repository Synchronization"
 echo "========================================="
 
-mkdir -p "${WORKSPACE_DIR}"
-
-for repo in ${PROJECTS}
+for PROJECT in "${!PROJECT_PATHS[@]}"
 do
-    REPO_DIR="${WORKSPACE_DIR}/${repo}"
+    REPO_PATH="${PROJECT_PATHS[$PROJECT]}"
+    REPO_REVISION="${PROJECT_REVISIONS[$PROJECT]}"
+
+    REPO_DIR="${WORKSPACE_DIR}/${REPO_PATH}"
+
+    echo
+    echo "-----------------------------------------"
+    echo "Repository : ${PROJECT}"
+    echo "Path       : ${REPO_PATH}"
+    echo "Revision   : ${REPO_REVISION}"
+    echo "-----------------------------------------"
 
     if [ ! -d "${REPO_DIR}" ]; then
-
-        echo "Cloning ${repo}"
-
         git clone \
-            "https://github.com/rdkcentral/${repo}.git" \
+            "https://github.com/rdkcentral/${PROJECT}.git" \
             "${REPO_DIR}"
-
-    else
-
-        echo "Updating ${repo}"
-
-        git -C "${REPO_DIR}" pull --ff-only || true
-
     fi
+
+    (
+        cd "${REPO_DIR}"
+
+        git fetch --all --tags
+
+        if [ -n "${REPO_REVISION}" ]; then
+            git checkout -f "${REPO_REVISION}"
+        else
+            git pull --ff-only || true
+        fi
+    )
 done
 
 ##############################################################################
 # UT-Core
 ##############################################################################
 
-echo ""
+echo
 echo "========================================="
 echo "UT-Core"
 echo "========================================="
 
 if [ ! -d "${UT_CORE_DIR}" ]; then
-
     git clone \
         https://github.com/rdkcentral/ut-core.git \
         "${UT_CORE_DIR}"
@@ -141,215 +157,110 @@ fi
     git checkout "${UT_CORE_DEFAULT_VERSION}"
 )
 
-echo ""
+echo
 echo "UT-Core Version:"
 git -C "${UT_CORE_DIR}" describe --tags
 
-##############################################################################
-# Prepare Unified Workspace
-##############################################################################
-
-rm -rf "${UNIFIED_SRC_DIR}"
-mkdir -p "${UNIFIED_SRC_DIR}"
-
-SRC_DIRS=""
-INC_DIRS=""
 
 ##############################################################################
-# Test Repositories
-##############################################################################
-
-for repo in ${TEST_REPOS}
-do
-    REPO_PATH="${WORKSPACE_DIR}/${repo}"
-
-    echo "Processing ${repo}"
-
-    #
-    # Add source folder as include path
-    #
-    if [ -d "${REPO_PATH}/src" ]; then
-
-        INC_DIRS="${INC_DIRS} ${REPO_PATH}/src"
-
-        #
-        # Copy source files except main.c/test_register.c
-        #
-        find "${REPO_PATH}/src" \
-            -name "*.c" \
-            ! -name "main.c" \
-            ! -name "test_register.c" \
-            -exec cp {} "${UNIFIED_SRC_DIR}" \;
-
-        #
-        # Copy local headers
-        #
-        find "${REPO_PATH}/src" \
-            -name "*.h" \
-            -exec cp {} "${UNIFIED_SRC_DIR}" \;
-    fi
-
-    if [ -d "${REPO_PATH}/skeletons/src" ]; then
-
-        find "${REPO_PATH}/skeletons/src" \
-            -name "*.c" \
-            -exec cp {} "${UNIFIED_SRC_DIR}" \;
-
-        find "${REPO_PATH}/skeletons/src" \
-            -name "*.h" \
-            -exec cp {} "${UNIFIED_SRC_DIR}" \;
-    fi
-
-    if [ -d "${REPO_PATH}/include" ]; then
-        INC_DIRS="${INC_DIRS} ${REPO_PATH}/include"
-    fi
-
-    if [ -d "${REPO_PATH}/ut-core/test_include" ]; then
-        INC_DIRS="${INC_DIRS} ${REPO_PATH}/ut-core/test_include"
-    fi
-done
-
-##############################################################################
-# HAL Repositories
-##############################################################################
-
-for repo in ${HAL_REPOS}
-do
-    REPO_PATH="${WORKSPACE_DIR}/${repo}"
-
-    if [ -d "${REPO_PATH}/include" ]; then
-        INC_DIRS="${INC_DIRS} ${REPO_PATH}/include"
-    fi
-
-    if [ -d "${REPO_PATH}/src" ]; then
-        INC_DIRS="${INC_DIRS} ${REPO_PATH}/src"
-    fi
-done
-
-##############################################################################
-# Generate Unified Main
-##############################################################################
-
-cat > "${UNIFIED_SRC_DIR}/unified_main.c" << 'EOF'
-#include <ut.h>
-
-extern void UT_register_tests(void);
-
-int main(int argc, char **argv)
-{
-    UT_init(argc, argv);
-
-    UT_register_tests();
-
-    UT_run_tests();
-
-    UT_exit();
-
-    return 0;
-}
-EOF
-
-##############################################################################
-# Generate Unified Registration
-##############################################################################
-
-REGISTER_FILE="${UNIFIED_SRC_DIR}/unified_test_register.c"
-
-echo '#include <ut.h>' > "${REGISTER_FILE}"
-echo "" >> "${REGISTER_FILE}"
-
-REG_FUNCS=""
-REG_CALLS=""
-
-echo ""
-echo "========================================="
-echo "Generating Unified Registration"
-echo "========================================="
-
-for repo in ${TEST_REPOS}
-do
-    REPO_PATH="${WORKSPACE_DIR}/${repo}"
-
-    while IFS= read -r src
-    do
-
-        FUNC=$(grep -hoE \
-            'void[[:space:]]+[A-Za-z0-9_]+[[:space:]]*\(' \
-            "${src}" 2>/dev/null \
-            | grep "_register" \
-            | sed -E 's/void[[:space:]]+//' \
-            | sed 's/[[:space:]]*(//' \
-            | head -1)
-
-        if [ -n "${FUNC}" ]; then
-
-            REG_FUNCS="${REG_FUNCS}extern void ${FUNC}(void);\n"
-            REG_CALLS="${REG_CALLS}    ${FUNC}();\n"
-
-            echo "Found ${FUNC}"
-        fi
-
-    done < <(
-        find "${REPO_PATH}/src" \
-            -name "*.c" \
-            ! -name "main.c" \
-            ! -name "test_register.c"
-    )
-
-done
-
-printf "%b\n" "${REG_FUNCS}" >> "${REGISTER_FILE}"
-
-cat >> "${REGISTER_FILE}" << 'EOF'
-
-void UT_register_tests(void)
-{
-EOF
-
-printf "%b" "${REG_CALLS}" >> "${REGISTER_FILE}"
-
-cat >> "${REGISTER_FILE}" << 'EOF'
-}
-EOF
-
-##############################################################################
-# Final Source/Include Directories
+# Source Discovery
 ##############################################################################
 
 SRC_DIRS="${UNIFIED_SRC_DIR}"
+INC_DIRS=""
+
+##############################################################################
+# Process Test Repositories
+##############################################################################
+
+for repo in ${TEST_REPOS}
+do
+    REPO_PATH="${WORKSPACE_DIR}/${repo}"
+
+    echo
+    echo "Processing ${repo}"
+
+    #
+    # Remove standalone main
+    #
+    rm -f "${REPO_PATH}/src/main.c"
+
+    #
+    # Rename UT_register_tests()
+    #
+    if [ -f "${REPO_PATH}/src/test_register.c" ]; then
+
+        UNIQUE_FUNC=$(basename "${repo}" | tr '-' '_')_register_tests
+
+        sed -i \
+            "s/\<UT_register_tests\>/${UNIQUE_FUNC}/g" \
+            "${REPO_PATH}/src/test_register.c"
+
+        REGISTER_DECLS="${REGISTER_DECLS}
+    extern int ${UNIQUE_FUNC}(void);"
+
+        REGISTER_CALLS="${REGISTER_CALLS}
+        ${UNIQUE_FUNC}();"
+
+        echo "Register Function: ${UNIQUE_FUNC}"
+    fi
+
+    if [ -d "${REPO_PATH}/src" ]; then
+        SRC_DIRS="${SRC_DIRS} ${REPO_PATH}/src"
+    fi
+
+    if [ -d "${REPO_PATH}/skeletons/src" ]; then
+        SRC_DIRS="${SRC_DIRS} ${REPO_PATH}/skeletons/src"
+    fi
+done
+
+
+##############################################################################
+# Include Discovery
+##############################################################################
+
+for repo in ${HAL_REPOS} ${TEST_REPOS}
+do
+    REPO_PATH="${WORKSPACE_DIR}/${repo}"
+
+    for dir in \
+        include \
+        src \
+        skeletons/src
+    do
+        if [ -d "${REPO_PATH}/${dir}" ]; then
+
+            INC_DIRS="${INC_DIRS} ${REPO_PATH}/${dir}"
+
+            echo "Include Path Added: ${REPO_PATH}/${dir}"
+        fi
+    done
+done
+
+##############################################################################
+# UT-Core Includes
+##############################################################################
+
+INC_DIRS="${INC_DIRS} ${UT_CORE_DIR}/include"
+
+if [ -d "${UT_CORE_DIR}/framework/CUnit-2.1-3/CUnit/Headers" ]; then
+    INC_DIRS="${INC_DIRS} ${UT_CORE_DIR}/framework/CUnit-2.1-3/CUnit/Headers"
+fi
+
+if [ -d "${UT_CORE_DIR}/framework/ut-control/include" ]; then
+    INC_DIRS="${INC_DIRS} ${UT_CORE_DIR}/framework/ut-control/include"
+fi
+
 INC_DIRS="${INC_DIRS} ${UNIFIED_SRC_DIR}"
 
 ##############################################################################
-# Debug
-##############################################################################
-
-echo ""
-echo "========================================="
-echo "Unified Sources"
-echo "========================================="
-
-find "${UNIFIED_SRC_DIR}" -name "*.c"
-
-echo ""
-echo "========================================="
-echo "SRC_DIRS"
-echo "========================================="
-
-printf "%s\n" ${SRC_DIRS}
-
-echo ""
-echo "========================================="
-echo "INC_DIRS"
-echo "========================================="
-
-printf "%s\n" ${INC_DIRS}
-
-##############################################################################
-# Export For UT-Core
+# Export Variables
 ##############################################################################
 
 export SRC_DIRS
 export INC_DIRS
+
+export EXCLUDE_SRCS="main.c"
 
 export TARGET
 export TOP_DIR="${ROOT_DIR}"
@@ -359,10 +270,35 @@ export BIN_DIR="${BUILD_DIR}/bin"
 export KCFLAGS="-DHALIF_UNIFIED"
 
 ##############################################################################
+# Debug
+##############################################################################
+
+echo
+echo "========================================="
+echo "Generated Sources"
+echo "========================================="
+
+find "${UNIFIED_SRC_DIR}" -name "*.c"
+
+echo
+echo "========================================="
+echo "SRC_DIRS"
+echo "========================================="
+
+printf "%s\n" ${SRC_DIRS}
+
+echo
+echo "========================================="
+echo "INC_DIRS"
+echo "========================================="
+
+printf "%s\n" ${INC_DIRS}
+
+##############################################################################
 # Build
 ##############################################################################
 
-echo ""
+echo
 echo "========================================="
 echo "Building Unified HALIF"
 echo "========================================="
@@ -373,7 +309,7 @@ make TARGET=${TARGET} VARIANT=${VARIANT}
 # Complete
 ##############################################################################
 
-echo ""
+echo
 echo "========================================="
 echo "Build Complete"
 echo "========================================="

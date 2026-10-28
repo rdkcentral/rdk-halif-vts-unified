@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
 
-    <project name="rdk-halif-power_manager" path="rdk-halif-power_manager" groups="hal"/>
-    <project name="rdk-halif-test-power_manager" path="rdk-halif-test-power_manager" groups="test"/>
-
-    <project name="rdk-halif-device_settings" path="rdk-halif-device_settings" groups="hal"/>
-    <project name="rdk-halif-test-device_settings" path="rdk-halif-test-device_settings" groups="test"/>
+<project name="rdk-halif-power_manager" path="rdk-halif-power_manager" revision="main" groups="hal"/>
+<project name="rdk-halif-test-power_manager" path="rdk-halif-test-power_manager" revision="main" groups="test"/>
+<project name="rdk-halif-device_settings" path="rdk-halif-device_settings" revision="main" groups="hal"/>
+<project name="rdk-halif-test-device_settings" path="rdk-halif-test-device_settings" revision="main" groups="test"/>
 
 </manifest>

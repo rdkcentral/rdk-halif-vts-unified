@@ -32,7 +32,6 @@ clean:
 		$(MAKE) -C $(UT_DIR) cleanall || true ; \
 	fi
 
-	rm -rf generated
 	rm -rf build
 	rm -rf ut-core
 	rm -rf vts_hal_test_components
