@@ -18,14 +18,14 @@ build:
 	@echo "VARIANT : $(VARIANT)"
 	@echo "========================================="
 
-	$(MAKE) -C $(UT_DIR) framework
-	$(MAKE) -C $(UT_DIR) test
+	$(MAKE) -C $(UT_DIR) framework TARGET=$(TARGET) VARIANT=$(VARIANT)
+	$(MAKE) -C $(UT_DIR) test TARGET=$(TARGET) VARIANT=$(VARIANT)
 
 framework:
-	$(MAKE) -C $(UT_DIR) framework
+	$(MAKE) -C $(UT_DIR) framework TARGET=$(TARGET) VARIANT=$(VARIANT)
 
 test:
-	$(MAKE) -C $(UT_DIR) test
+	$(MAKE) -C $(UT_DIR) test TARGET=$(TARGET) VARIANT=$(VARIANT)
 
 clean:
 	@if [ -d "$(UT_DIR)" ]; then \
