@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+<project name="rdk-halif-power_manager" path="rdk-halif-power_manager" revision="main" groups="hal"/>
+<project name="rdk-halif-test-power_manager" path="rdk-halif-test-power_manager" revision="main" groups="test"/>
+
+<project name="rdk-halif-device_settings" path="rdk-halif-device_settings" revision="main" groups="hal"/>
+<project name="rdk-halif-test-device_settings" path="rdk-halif-test-device_settings" revision="main" groups="test"/>
+
+<project name="rdk-halif-hdmi_cec" path="rdk-halif-hdmi_cec" revision="main" groups="hal"/>
+<project name="rdk-halif-test-hdmi_cec" path="rdk-halif-test-hdmi_cec" revision="main" groups="test"/>
+
+<project name="rdk-halif-deepsleep_manager" path="rdk-halif-deepsleep_manager" revision="main" groups="hal"/>
+<project name="rdk-halif-test-deepsleep_manager" path="rdk-halif-test-deepsleep_manager" revision="main" groups="test"/>
+
+<project name="rdk-halif-rmf_audio_capture" path="rdk-halif-rmf_audio_capture" revision="main" groups="hal"/>
+<project name="rdk-halif-test-rmf_audio_capture" path="rdk-halif-test-rmf_audio_capture" revision="main" groups="test"/>
+
+<project name="rdk-halif-tvsettings" path="rdk-halif-tvsettings" revision="main" groups="hal"/>
+<project name="rdk-halif-test-tvsettings" path="rdk-halif-test-tvsettings" revision="main" groups="test"/>
+
+</manifest>
