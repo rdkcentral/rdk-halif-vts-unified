@@ -460,34 +460,6 @@ validate_component_profile()
     return 0
 }
 
-# Copy component profile YAML files into a consolidated repo-local profile directory.
-: 'copy_component_profiles()
-{
-    local profile_type="$1"
-    local target_dir="${ROOT_DIR}/profiles/${profile_type}"
-
-    mkdir -p "${target_dir}"
-
-    for repo in ${TEST_REPOS}
-    do
-        local repo_path="${WORKSPACE_DIR}/${repo}"
-        local source_dir="${repo_path}/profiles/${profile_type}"
-
-        [ ! -d "${source_dir}" ] && continue
-
-        while read -r yaml
-        do
-            validate_component_profile "${yaml}" || continue
-            cp -f "${yaml}" "${target_dir}/$(basename "${yaml}")"
-        done < <(
-            find "${source_dir}" \
-                -type f \
-                \( -name "*.yaml" -o -name "*.yml" \) \
-                | sort
-        )
-    done
-}'
-
 # Declare that unified runtime profiles are generated only under build/bin/profiles.
 generate_unified_profile()
 {
@@ -644,7 +616,7 @@ EOF
     local include_index=0
     local yaml_count=0
 
-    while read -r yaml
+        while read -r yaml
     do
         [ -n "${yaml}" ] || continue
 
@@ -654,10 +626,11 @@ EOF
             continue
         fi
 
-        local rel_path
-        rel_path=$(realpath --relative-to="${ROOT_DIR}" "${yaml}")
+        local yaml_file
+        yaml_file=$(basename "${yaml}")
 
-        echo "include_${include_index}: ${rel_path}" >> "${unified_profile}"
+        echo "include_${include_index}: ${yaml_file}" >> "${unified_profile}"
+
         include_index=$((include_index + 1))
         yaml_count=$((yaml_count + 1))
     done < <(
@@ -667,6 +640,7 @@ EOF
             \( -name "*.yaml" -o -name "*.yml" \) \
             | sort
     )
+
 
     echo "Generated runtime profile: ${unified_profile}"
     echo "Includes: ${yaml_count} profile files"
@@ -685,23 +659,47 @@ copy_profiles_to_bin()
         mkdir -p "${dst_profile_dir}"
 
         for repo in ${TEST_REPOS}
+do
+    local repo_path="${WORKSPACE_DIR}/${repo}"
+    local source_dir="${repo_path}/profiles/${profile_type}"
+
+    #
+    # Normal sink/source profile handling
+    #
+    if [ -d "${source_dir}" ]; then
+        while read -r yaml
         do
-            local repo_path="${WORKSPACE_DIR}/${repo}"
-            local source_dir="${repo_path}/profiles/${profile_type}"
+            validate_component_profile "${yaml}" || continue
+            cp -f "${yaml}" "${dst_profile_dir}/$(basename "${yaml}")"
+        done < <(
+            find "${source_dir}" \
+                -type f \
+                \( -name "*.yaml" -o -name "*.yml" \) \
+                | sort
+        )
+    fi
 
-            [ ! -d "${source_dir}" ] && continue
+    #
+    # Special handling for rmf_audio_capture
+    # Copy the two profile files directly into build/bin/profiles
+    #
+    if [ "${repo}" = "rdk-halif-test-rmf_audio_capture" ]; then
+        local rmf_profile_dir="${repo_path}/profiles"
 
-            while read -r yaml
-            do
-                validate_component_profile "${yaml}" || continue
-                cp -f "${yaml}" "${dst_profile_dir}/$(basename "${yaml}")"
-            done < <(
-                find "${source_dir}" \
-                    -type f \
-                    \( -name "*.yaml" -o -name "*.yml" \) \
-                    | sort
-            )
+        for yaml in \
+            "${rmf_profile_dir}/rmfAudioCaptureAuxNotSupported.yaml" \
+            "${rmf_profile_dir}/rmfAudioCaptureAuxSupported.yaml"
+        do
+            [ ! -f "${yaml}" ] && continue
+
+            validate_component_profile "${yaml}" || continue
+
+            cp -f "${yaml}" "${dst_profiles}/$(basename "${yaml}")"
+
+            echo "Copied RMF profile: $(basename "${yaml}")"
         done
+    fi
+done
 
         generate_runtime_unified_profile "${profile_type}"
     done
@@ -778,7 +776,11 @@ if [ -z "\${PROFILE_PATH}" ]; then
     fi
 fi
 
-PROFILE_PATH="\$(realpath -m "\${PROFILE_PATH}")"
+if [ -d "\${PROFILE_PATH}" ]; then
+    PROFILE_PATH="\$(cd "\${PROFILE_PATH}" && pwd -P)"
+elif [ -f "\${PROFILE_PATH}" ]; then
+    PROFILE_PATH="\$(cd "\$(dirname "\${PROFILE_PATH}")" && pwd -P)/\$(basename "\${PROFILE_PATH}")"
+fi
 
 if [ -d "\${PROFILE_PATH}" ]; then
     while read -r profile; do
@@ -802,7 +804,7 @@ export LD_LIBRARY_PATH="\${RUN_DIR}/lib:\${RUN_DIR}:/usr/lib:/lib\${LD_LIBRARY_P
 echo "Using Profiles:"
 printf '%s\n' "\${PROFILE_FILES[@]}"
 
-cd "\${PROJECT_ROOT}"
+cd "\${RUN_DIR}"
 
 CMD=("\${RUN_DIR}/hal_test")
 for profile in "\${PROFILE_FILES[@]}"; do

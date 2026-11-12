@@ -1,0 +1,148 @@
+#** *****************************************************************************
+# *
+# * If not stated otherwise in this file or this component's LICENSE file the
+# * following copyright and licenses apply:
+# *
+# * Copyright 2026 RDK Management
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *
+# * http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *
+#* ******************************************************************************
+
+# PARS DUT rack configuration for the RAFT host flow.
+# This file is intentionally aligned with the project runtime model used by PARS:
+# - DUT is a vDevice
+# - generated runtime config is under build/bin/profiles
+# - target root on the DUT is /tmp/pars
+# - the device config is in the same host/tests/configs folder and is the source of truth
+
+# Data that is global to all tests.
+# PARS DUT rack configuration for the RAFT host flow.
+
+globalConfig:
+  includes:
+    deviceConfig: "vts_deviceConfig.yml"
+
+  local:
+    log:
+      directory: "./logs"
+      delimiter: "/"
+
+rackConfig:
+  rack1:
+    name: "rack1"
+    description: "DUT rack"
+
+    slot1:
+      name: "slot1"
+
+      devices:
+        - dut:
+            ip: "10.45.88.53"
+            description: "DUT"
+            platform: "vDevice"
+
+            consoles:
+              - default:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_hal_test_0:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_hal_test_1:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_hal_test_2:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_player:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_hal_test:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+            # outbound:
+            #   download_url: "tftp://tftp-server/rack1/slot1/"
+            #   upload_url: "sftp://server-address/home/workspace/tftp/rack1/slot1/"
+            #   upload_url_base_dir: "sftp://server-address/home/workspace/tftp/rack1/slot1"
+            #   httpProxy:
+            #   workspaceDirectory: "./logs/workspace"
+
+            # hdmiCECController:
+            #   type: "virtual-cec-client"
+            #   vendor: "vComponent"
+            #   address: "10.45.88.53"
+            #   username: "root"
+            #   password: ""
+            #   port: 10022
+            #   control_port: 9080
+            #   device_network_configuration: "/path/to/hdmicec_device_config_add_network.yaml"
+
+            # hdmiController:
+            #   type: "virtual-hdmi-controller"
+            #   vendor: "vComponent"
+            #   address: "10.45.88.53"
+            #   username: "root"
+            #   password: ""
+            #   port: 10022
+            #   source_control_port: 9001
+            #   sink_control_port: 9002
+
+            # compositeController:
+            #   type: "virtual-composite-controller"
+            #   vendor: "vComponent"
+            #   address: "10.45.88.53"
+            #   username: "root"
+            #   password: ""
+            #   port: 10022
+            #   control_port: 9082
+
+            # dutRebootController:
+            #   type: "virtual-dut-reboot-controller"
+            #   vendor: "vComponent"
+            #   address: "10.45.88.53"
+            #   username: "root"
+            #   password: ""
+            #   port: 10022
+            #   control_port: 9081
