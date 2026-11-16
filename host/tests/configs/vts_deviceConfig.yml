@@ -1,5 +1,25 @@
-# PARS DUT-side VTS device configuration.
-# This project uses the generated runtime bundle under build/bin and not repo-local profile copies.
+#** *****************************************************************************
+# *
+# * If not stated otherwise in this file or this component's LICENSE file the
+# * following copyright and licenses apply:
+# *
+# * Copyright 2026 RDK Management
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *
+# * http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *
+#* ******************************************************************************
+
 deviceConfig:
   cpe1:
     platform: "vDevice"
@@ -22,23 +42,14 @@ deviceConfig:
 
     profile_type: "source"   # source or sink
 
-    boot_non_volatile_directory: "/home/root"
-    boot_volatile_directory: "/opt"
-
     test:
-      profile: "bin/profiles/sink/unified_sink_hal_profile.yaml"
+      profile: "bin/profiles/{profile_type}/unified_{profile_type}_hal_profile.yaml"
 
       streams_download_url: "https://example.com/streams"
 
       device_network_list: "/opt/device_list.txt"
 
       platform_led_config: "bin/profiles/sink/led_config.yaml"
-
-      motionsensor_controller_port: 0
-      thermalsensor_controller_port: 0
-
-      deepsleep_controller_port: 8081
-      deep_sleep_duration_seconds: 60
 
     remote:
       deepsleep:
