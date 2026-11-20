@@ -259,34 +259,6 @@ Run:
 
 ---
 
-# L3 Automation Execution
-
-L3 automation is executed using RAFT.
-
-Required configuration files:
-
-```text
-vts_rack_config.yml
-vts_deviceConfig.yml
-```
-
-Example:
-
-```bash
-python vts_l1l2_test.py \
---config ../configs/vts_rack_config.yml \
---deviceConfig ../configs/vts_deviceConfig.yml
-```
-
-Ensure:
-
-- DUT is reachable through SSH.
-- HAL package is copied to DUT.
-- Correct profile path is configured.
-- Port 10022 is accessible if applicable.
-
----
-
 # Troubleshooting
 
 ## Build Failure

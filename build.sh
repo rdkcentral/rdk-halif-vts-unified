@@ -629,7 +629,7 @@ EOF
         local yaml_file
         yaml_file=$(basename "${yaml}")
 
-        echo "include_${include_index}: ${yaml_file}" >> "${unified_profile}"
+        echo "include_${include_index}: profiles/${profile_type}/${yaml_file}" >> "${unified_profile}"
 
         include_index=$((include_index + 1))
         yaml_count=$((yaml_count + 1))
@@ -656,56 +656,85 @@ copy_profiles_to_bin()
     for profile_type in sink source
     do
         local dst_profile_dir="${dst_profiles}/${profile_type}"
+
         mkdir -p "${dst_profile_dir}"
 
         for repo in ${TEST_REPOS}
-do
-    local repo_path="${WORKSPACE_DIR}/${repo}"
-    local source_dir="${repo_path}/profiles/${profile_type}"
-
-    #
-    # Normal sink/source profile handling
-    #
-    if [ -d "${source_dir}" ]; then
-        while read -r yaml
         do
-            validate_component_profile "${yaml}" || continue
-            cp -f "${yaml}" "${dst_profile_dir}/$(basename "${yaml}")"
-        done < <(
-            find "${source_dir}" \
-                -type f \
-                \( -name "*.yaml" -o -name "*.yml" \) \
-                | sort
-        )
-    fi
+            local repo_path="${WORKSPACE_DIR}/${repo}"
+            local source_dir="${repo_path}/profiles/${profile_type}"
 
-    #
-    # Special handling for rmf_audio_capture
-    # Copy the two profile files directly into build/bin/profiles
-    #
-    if [ "${repo}" = "rdk-halif-test-rmf_audio_capture" ]; then
-        local rmf_profile_dir="${repo_path}/profiles"
+            #
+            # Normal sink/source profile handling
+            #
+            if [ -d "${source_dir}" ]; then
 
-        for yaml in \
-            "${rmf_profile_dir}/rmfAudioCaptureAuxNotSupported.yaml" \
-            "${rmf_profile_dir}/rmfAudioCaptureAuxSupported.yaml"
-        do
-            [ ! -f "${yaml}" ] && continue
+                while read -r yaml
+                do
+                    validate_component_profile "${yaml}" || continue
 
-            validate_component_profile "${yaml}" || continue
+                    cp -f \
+                        "${yaml}" \
+                        "${dst_profile_dir}/$(basename "${yaml}")"
 
-            cp -f "${yaml}" "${dst_profiles}/$(basename "${yaml}")"
+                done < <(
+                    find "${source_dir}" \
+                        -type f \
+                        \( -name "*.yaml" -o -name "*.yml" \) \
+                        | sort
+                )
+            fi
 
-            echo "Copied RMF profile: $(basename "${yaml}")"
+            #
+            # Special handling for rmf_audio_capture
+            #
+            if [ "${repo}" = "rdk-halif-test-rmf_audio_capture" ]; then
+
+                local rmf_profile_dir="${repo_path}/profiles"
+
+                for yaml in \
+                    "${rmf_profile_dir}/rmfAudioCaptureAuxNotSupported.yaml" \
+                    "${rmf_profile_dir}/rmfAudioCaptureAuxSupported.yaml"
+                do
+                    [ ! -f "${yaml}" ] && continue
+
+                    validate_component_profile "${yaml}" || continue
+
+                    cp -f \
+                        "${yaml}" \
+                        "${dst_profiles}/$(basename "${yaml}")"
+
+                    echo "Copied RMF profile: $(basename "${yaml}")"
+                done
+            fi
+
+            #
+            # Special handling for deepsleep_manager
+            #
+            if [ "${repo}" = "rdk-halif-test-deepsleep_manager" ]; then
+
+                local ds_profile="${repo_path}/profiles/deepsleepmanagerWakeUpSources.yaml"
+
+                if [ -f "${ds_profile}" ]; then
+
+                    validate_component_profile "${ds_profile}" || continue
+
+                    cp -f \
+                        "${ds_profile}" \
+                        "${dst_profile_dir}/deepsleepmanagerWakeUpSources.yaml"
+
+                    echo "Copied DeepSleep profile to ${profile_type}: deepsleepmanagerWakeUpSources.yaml"
+                fi
+            fi
+
         done
-    fi
-done
 
         generate_runtime_unified_profile "${profile_type}"
     done
 
     echo "Copied profiles into: ${dst_profiles}"
 }
+
 
 # Invoke the actual Make-based unified HAL build for the selected target and variant.
 build_project()

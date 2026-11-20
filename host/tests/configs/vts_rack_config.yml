@@ -40,8 +40,8 @@ rackConfig:
       devices:
         - dut:
             ip: ""
-            description: "DUT"
-            platform: "vDevice"
+            description: ""
+            platform: ""
 
             consoles:
               - default:

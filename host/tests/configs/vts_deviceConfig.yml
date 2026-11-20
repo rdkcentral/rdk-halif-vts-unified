@@ -22,37 +22,11 @@
 
 deviceConfig:
   cpe1:
-    platform: "vDevice"
-    model: "UK"
-    soc_vendor: "intel"
-
-    target_directory: "/opt"
-
+    platform: ""
+    target_directory: ""
     prompt: "#"
-
-    download_path: "bin/assets/streams/input/"
-    playback_manual_verification: 0
-    test_config_path: "bin/profiles"
-
     all_wait_time: 2400
     wait_time: 320
-
-    device_type:
-      - "TV"
-
     profile_type: "source"   # source or sink
-
     test:
       profile: "bin/profiles/{profile_type}/unified_{profile_type}_hal_profile.yaml"
-
-      streams_download_url: "https://example.com/streams"
-
-      device_network_list: "/opt/device_list.txt"
-
-      platform_led_config: "bin/profiles/sink/led_config.yaml"
-
-    remote:
-      deepsleep:
-        RCU_IR: 6
-        RCU_BT: 7
-        RCU_RF4CE: 8

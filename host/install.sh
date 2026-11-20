@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
-# Setup the RAFT toolchain and Python environment required to run DUT-side VTS automation.
+#** *****************************************************************************
+# *
+# * If not stated otherwise in this file or this component's LICENSE file the
+# * following copyright and licenses apply:
+# *
+# * Copyright 2026 RDK Management
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *
+# * http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *
+#* ******************************************************************************
 
 MY_PATH="$(realpath "${BASH_SOURCE[0]}")"
 MY_DIR="$(dirname "${MY_PATH}")"
@@ -68,21 +88,25 @@ function clone_repo() {
 }
 
 function setup_and_enable_venv() {
+    # Check if virtual environment directory exists, create if not
     if [[ ! -d "${VENV_DIR}" ]]; then
         ECHO "Creating Virtual environment ${YELLOW}'${VENV_NAME}'${NO_COLOR}"
         python3 -m venv "${VENV_DIR}"
         ECHO "Virtual environment created."
     fi
 
-    if [[ -z "${VIRTUAL_ENV}" ]]; then
-        export VIRTUAL_ENV="${VENV_DIR}"
-        export PATH="${VIRTUAL_ENV}/bin:${PATH}"
+    # Request that the user re-run this script from the vendor
+    # Check if already inside a virtual environment
+    if [[ ! -n "$VIRTUAL_ENV" ]]; then
+        # Activate virtual environment
+        ECHO "please source & re-run ${YELLOW}install.sh${NO_COLOR} to ensure setup:"
+        ECHO ${YELLOW}"source ./activate_venv.sh"${NO_COLOR}
+        exit 1  # Exit the function if already in a venv
     fi
 
     if [ -f "${VENV_DIR}/.installed" ]; then
         return
-    fi
-
+    fi   
     touch "${VENV_DIR}/.installed"
 }
 
