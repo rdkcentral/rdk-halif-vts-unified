@@ -105,7 +105,6 @@ class VTSTestHelperClass(utHelperClass):
             profile_file_path = profile.replace("\\", "/").removeprefix("bin/")
 
             self.module_config_profile_files.append(profile_file_path)
-
             self.test_config.test.execute += f" -p {profile_file_path}"
 
             ut_menu = UTSuiteNavigatorClass(
@@ -200,7 +199,6 @@ class VTSTestHelperClass(utHelperClass):
             )
 
             self.copied_binaries = []
-
             self.log.info("Binary cleanup completed")
             return True
 
@@ -265,11 +263,8 @@ class VTSTestHelperClass(utHelperClass):
                 continue
 
             outputs.append(output)
-
             result = ut_menu.collect_results(output, True)
-
             result = result if result is not None else False
-
             results.append(result)
 
             self.log.info(

@@ -21,9 +21,9 @@
 # *
 #* ******************************************************************************
 
-MY_PATH="$(realpath "${BASH_SOURCE[0]}")"
-MY_DIR="$(dirname "${MY_PATH}")"
-VENV_DIR="${MY_DIR}/python_venv"
+FILE_PATH="$(realpath "${BASH_SOURCE[0]}")"
+FILE_DIR="$(dirname "${FILE_PATH}")"
+VENV_DIR="${FILE_DIR}/python_venv"
 
 # Check if the script is sourced.
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then

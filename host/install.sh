@@ -21,14 +21,14 @@
 # *
 #* ******************************************************************************
 
-MY_PATH="$(realpath "${BASH_SOURCE[0]}")"
-MY_DIR="$(dirname "${MY_PATH}")"
-TESTS_DIR="${MY_DIR}/tests"
+FILE_PATH="$(realpath "${BASH_SOURCE[0]}")"
+FILE_DIR="$(dirname "${FILE_PATH}")"
+TESTS_DIR="${FILE_DIR}/tests"
 RAFT_DIR="${TESTS_DIR}/raft"
 RDK_RAFT_DIR="${TESTS_DIR}/rdk_raft"
 PLUGINS_FRAMEWORK_DIR="${RAFT_DIR}/framework/plugins"
 VENV_NAME="python_venv"
-VENV_DIR="${MY_DIR}/${VENV_NAME}"
+VENV_DIR="${FILE_DIR}/${VENV_NAME}"
 
 set -e
 

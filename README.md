@@ -2,19 +2,17 @@
 
 ## Table of Contents
 
-- Acronyms, Terms and Abbreviations
-- Description
-- Repository Structure
-- Prerequisites
-- Build Instructions
-- Running the Test Suite
-- Runtime Profiles
-- Supported Components
-- Packaging
-- L1/L2 Test Execution
-- L3 Automation Execution
-- Troubleshooting
-
+- [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
+- [Description](#Description)
+- [Repository Structure](#Repository-Structure)
+- [Prerequisites](#Prerequisites)
+- [Build Instructions](#Build-Instructions)
+- [Running the Test Suite](#Running-the-Test-Suite)
+- [Runtime Profiles](#Runtime-Profiles)
+- [Supported Components](#Supported-Components)
+- [Packaging](#Packaging)
+- [L1/L2 Test Execution](#L1/L2-Test-Execution)
+- [Troubleshooting](#Troubleshooting)
 ---
 
 # Acronyms, Terms and Abbreviations

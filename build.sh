@@ -18,8 +18,15 @@
 #*  limitations under the License.
 #*
 #* 
-
 set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
 
 ##############################################################################
 # Defaults
@@ -27,12 +34,8 @@ set -e
 
 TARGET=""
 VARIANT="C"
-
-SUPPORTED_TARGETS="linux arm"
-
-UT_CORE_DEFAULT_VERSION="${UT_CORE_DEFAULT_VERSION:-5.0.0}"
+UT_CORE_DEFAULT_VERSION="${UT_CORE_DEFAULT_VERSION:-5.2.0}"
 export UT_CORE_DEFAULT_VERSION
-
 
 ##############################################################################
 # Argument Functions
@@ -41,6 +44,8 @@ export UT_CORE_DEFAULT_VERSION
 # Parse command-line options and route build actions like build, clean, dist_clean, and help.
 parse_arguments()
 {
+    HELP_REQUESTED=0
+
     for arg in "$@"
     do
         case "$arg" in
@@ -52,11 +57,10 @@ parse_arguments()
                 ;;
             TARGET=*|target=*|Target=*)
                 TARGET="${arg#*=}"
+                TARGET="${TARGET,,}"
                 ;;
-            help)
-                echo "Build Script Help"
-                print_usage
-                exit 0
+            help|-h|--help)
+                HELP_REQUESTED=1
                 ;;
         esac
     done
@@ -84,12 +88,13 @@ dist_clean_project()
 # Display the supported command-line usage patterns for the build wrapper.
 print_usage()
 {
-    echo "======================================================================================"
-    echo " ./build.sh TARGET=<target>   - Builds the test for specified target (arm, linux) "
-    echo " ./build.sh clean             - Cleans the build folder"
-    echo " ./build.sh dist_clean        - Deletes all build and checkout folders"
-    echo " ./build.sh help              - Displays this help message"
-    echo "======================================================================================"
+    echo -e "${BOLD}${CYAN}Usage:${RESET}"
+    echo -e "${BOLD}╔═════════════════════════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "${BOLD}* ${GREEN}./build.sh TARGET=<target>${RESET}${YELLOW}  - Builds the test for specified target (arm, linux)${RESET} ${BOLD}*${RESET}"
+    echo -e "${BOLD}* ${GREEN}./build.sh clean${RESET}${YELLOW}            - Cleans the build folder${RESET} ${BOLD}                          *${RESET}"
+    echo -e "${BOLD}* ${GREEN}./build.sh dist_clean${RESET}${YELLOW}       - Deletes all build and checkout folders${RESET} ${BOLD}           *${RESET}"
+    echo -e "${BOLD}* ${GREEN}./build.sh help${RESET}${YELLOW}             - Displays this help message${RESET} ${BOLD}                       *${RESET}"
+    echo -e "${BOLD}╚═════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 }
 
 # Ensure the selected target is valid before continuing the build flow.
@@ -119,15 +124,11 @@ validate_target()
 initialize_paths()
 {
     ROOT_DIR=$(pwd)
-
     MANIFEST_FILE="${ROOT_DIR}/manifest.xml"
-
     WORKSPACE_DIR="${ROOT_DIR}/vts_hal_test_components"
     UT_CORE_DIR="${ROOT_DIR}/ut-core"
-
     UNIFIED_SRC_DIR="${ROOT_DIR}/src"
     BUILD_DIR="${ROOT_DIR}/build"
-
     PROFILE_DIR="${ROOT_DIR}/profiles"
 
     # Do not create repo-local profile directories under the project root.
@@ -154,19 +155,15 @@ validate_inputs()
 # Print the build banner with target, variant, and UT-Core version details.
 print_banner()
 {
-    echo "========================================="
-    echo "Unified HALIF Build"
-    echo "TARGET     : ${TARGET}"
-    echo "VARIANT    : ${VARIANT}"
-    echo "UT-Core    : ${UT_CORE_DEFAULT_VERSION}"
+    echo -e "${BOLD}${CYAN}Unified HALIF Build${RESET}"
+    echo -e "${BOLD}${GREEN}VARIANT    : ${RESET}${YELLOW}${VARIANT}${RESET}"
+    echo -e "${BOLD}${GREEN}UT-Core    : ${RESET}${YELLOW}${UT_CORE_DEFAULT_VERSION}${RESET}"
 
     if [ "${TARGET}" = "arm" ]; then
-        echo "Build Mode : ARM"
+        echo -e "${BOLD}${GREEN}Build Mode : ${RESET}${YELLOW}ARM${RESET}"
     else
-        echo "Build Mode : Linux Host"
+        echo -e "${BOLD}${GREEN}Build Mode : ${RESET}${YELLOW}Linux Host${RESET}"
     fi
-
-    echo "========================================="
 }
 
 ##############################################################################
@@ -194,7 +191,6 @@ parse_manifest()
         PROJECT_NAME=$(echo "$line" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
         PROJECT_PATH=$(echo "$line" | sed -n 's/.*path="\([^"]*\)".*/\1/p')
         PROJECT_REVISION=$(echo "$line" | sed -n 's/.*revision="\([^"]*\)".*/\1/p')
-
         PROJECT_PATHS["${PROJECT_NAME}"]="${PROJECT_PATH}"
         PROJECT_REVISIONS["${PROJECT_NAME}"]="${PROJECT_REVISION}"
 
@@ -211,7 +207,6 @@ sync_repository()
     local project="$1"
     local repo_path="$2"
     local revision="$3"
-
     local repo_dir="${WORKSPACE_DIR}/${repo_path}"
 
     echo
@@ -312,7 +307,6 @@ setup_ut_core()
 remove_standalone_main()
 {
     local repo_path="$1"
-
     rm -f "${repo_path}/src/main.c"
 }
 
@@ -327,7 +321,6 @@ register_test_suite()
     fi
 
     local unique_func
-
     unique_func=$(basename "${repo}" | tr '-' '_')_register_tests
 
     sed -i \
@@ -335,8 +328,7 @@ register_test_suite()
         "${repo_path}/src/test_register.c"
 
     REGISTER_DECLS="${REGISTER_DECLS}
-extern int ${unique_func}(void);"
-
+    extern int ${unique_func}(void);"
     REGISTER_CALLS="${REGISTER_CALLS}
     ${unique_func}();"
 
@@ -361,7 +353,6 @@ add_source_directories()
 process_single_repository()
 {
     local repo="$1"
-
     local repo_path="${WORKSPACE_DIR}/${repo}"
 
     echo
@@ -382,7 +373,6 @@ process_test_repositories()
 {
     REGISTER_DECLS=""
     REGISTER_CALLS=""
-
     SRC_DIRS="${UNIFIED_SRC_DIR}"
     INC_DIRS=""
 
@@ -489,26 +479,15 @@ configure_arm_target()
     echo "========================================="
 
     #
-    # Use SDK environment if already sourced
+    # ARM SDK environment must already be sourced
     #
-    if [ -n "${CC}" ]; then
-
-        echo "Using SDK compiler configuration"
-
-    else
-
-        #
-        # Fallback for standalone toolchain
-        #
-        export CROSS_COMPILE=${CROSS_COMPILE:-aarch64-linux-gnu-}
-
-        export CC=${CROSS_COMPILE}gcc
-        export CXX=${CROSS_COMPILE}g++
-        export AR=${CROSS_COMPILE}ar
-        export LD=${CROSS_COMPILE}ld
-        export STRIP=${CROSS_COMPILE}strip
+    if [ -z "${CC}" ] || [ -z "${CXX}" ] || [ -z "${AR}" ] || [ -z "${LD}" ]; then
+        echo "ERROR: ARM build environment not configured."
+        echo "Please source the required SDK/environment setup script before building."
+        exit 1
     fi
 
+    echo "Using SDK compiler configuration"
     echo "CC=${CC}"
     echo "CXX=${CXX}"
     echo "AR=${AR}"
@@ -524,7 +503,6 @@ configure_linux_target()
     export CXX=${CXX:-g++}
     export AR=${AR:-ar}
     export LD=${LD:-ld}
-
     export KCFLAGS="${KCFLAGS} -DTARGET_LINUX"
 }
 
@@ -549,12 +527,9 @@ export_build_variables()
 {
     export SRC_DIRS
     export INC_DIRS
-
     export EXCLUDE_SRCS="main.c"
-
     export TARGET
     export TOP_DIR="${ROOT_DIR}"
-
     export BIN_DIR="${BUILD_DIR}/bin"
 }
 
@@ -650,13 +625,11 @@ EOF
 copy_profiles_to_bin()
 {
     local dst_profiles="${BIN_DIR}/profiles"
-
     mkdir -p "${dst_profiles}"
 
     for profile_type in sink source
     do
         local dst_profile_dir="${dst_profiles}/${profile_type}"
-
         mkdir -p "${dst_profile_dir}"
 
         for repo in ${TEST_REPOS}
@@ -689,7 +662,7 @@ copy_profiles_to_bin()
             # Special handling for rmf_audio_capture
             #
             if [ "${repo}" = "rdk-halif-test-rmf_audio_capture" ]; then
-
+                
                 local rmf_profile_dir="${repo_path}/profiles"
 
                 for yaml in \
@@ -856,6 +829,12 @@ main()
     ACTION="build"
     parse_arguments "$@"
 
+    if [ "${HELP_REQUESTED}" = "1" ]; then
+    print_banner
+    print_usage
+    exit 0
+fi
+
     case "${ACTION}" in
         clean)
             ROOT_DIR="$(pwd)"
@@ -878,38 +857,23 @@ main()
     esac
 
     validate_target
-
     initialize_paths
     validate_inputs
-
     print_banner
-
     parse_manifest
-
     sync_repositories
     normalize_read_and_discard_helper
-
     setup_ut_core
-
     process_test_repositories
-
     discover_include_paths
     add_utcore_include_paths
-
     generate_all_profile_sets
-
     configure_target
-
     export_build_variables
-
     print_debug_information
-
     copy_profiles_to_bin
-
     build_project
-
     generate_launcher
-
     create_unified_tarball
 
     echo
