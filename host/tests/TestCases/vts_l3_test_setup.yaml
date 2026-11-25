@@ -1,0 +1,11 @@
+#** ******************************************************************************
+# * Licensed under the Apache License, Version 2.0 (the "License");
+#** ******************************************************************************
+
+L3Tests:
+  description: "Config-driven unified HALIF L3 RAFT tests"
+  tests:
+    - module: "deepsleep"
+      enabled: true
+      tests:
+        - "deepsleep_test1_TriggerDeepsleep"

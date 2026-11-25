@@ -39,55 +39,71 @@ rackConfig:
 
       devices:
         - dut:
-            ip: ""
-            description: ""
-            platform: ""
+            ip: "10.45.88.53"
+            description: "Test DUT"
+            platform: "Panel"
 
             consoles:
               - default:
                   type: "ssh"
-                  port: ""
-                  username: ""
-                  ip: ""
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
                   password: ""
                   prompt: "#"
 
               - ssh_hal_test_0:
                   type: "ssh"
-                  port: ""
-                  username: ""
-                  ip: ""
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
                   password: ""
                   prompt: "#"
 
               - ssh_hal_test_1:
                   type: "ssh"
-                  port: ""
-                  username: ""
-                  ip: ""
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
                   password: ""
                   prompt: "#"
 
               - ssh_hal_test_2:
                   type: "ssh"
-                  port: ""
-                  username: ""
-                  ip: ""
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
                   password: ""
                   prompt: "#"
 
               - ssh_player:
                   type: "ssh"
-                  port: ""
-                  username: ""
-                  ip: ""
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
                   password: ""
                   prompt: "#"
 
               - ssh_hal_test:
                   type: "ssh"
-                  port: ""
-                  username: ""
-                  ip: ""
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_hal_deepsleep_test:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
+                  password: ""
+                  prompt: "#"
+
+              - ssh_hal_power_test:
+                  type: "ssh"
+                  port: "10022"
+                  username: "root"
+                  ip: "10.45.88.53"
                   password: ""
                   prompt: "#"

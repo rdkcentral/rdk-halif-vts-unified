@@ -22,11 +22,11 @@
 
 deviceConfig:
   cpe1:
-    platform: ""
-    target_directory: ""
+    platform: "Panel"
+    target_directory: "/opt/"
     prompt: "#"
     all_wait_time: 2400
     wait_time: 320
-    profile_type: "source"   # source or sink
+    profile_type: "sink"   # source or sink
     test:
       profile: "bin/profiles/{profile_type}/unified_{profile_type}_hal_profile.yaml"
